@@ -19,5 +19,6 @@ jobs:
           port: 65002
           script: |
             cd /home/u686566202/domains/loanforsalaried.com/public_html
+            git config pull.rebase false
             git reset --hard HEAD
             git pull origin main
