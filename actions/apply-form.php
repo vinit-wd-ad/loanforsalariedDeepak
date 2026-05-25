@@ -1,24 +1,30 @@
 <?php
 
-$host   = DB_HOST;
-$db     = DB_NAME;
-$user   = DB_USER;
-$pass   = DB_PASS;
-$charset = DB_CHAERSET;
+$host    = DB_HOST;
+$db      = DB_NAME;
+$user    = DB_USER;
+$pass    = DB_PASS;
+$charset = DB_CHARSET;
 
-// === DB Table auto-create
-function getDB($host, $db, $user, $pass, $charset)
+/**
+ * 1. Database aur Table Initialization 
+ */
+function initDatabase($host, $db, $user, $pass, $charset)
 {
-    $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
-    $options = [
-        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES   => false,
-    ];
     try {
-        $pdo = new PDO($dsn, $user, $pass, $options);
-        // Table create if not exists
-        $pdo->exec("CREATE TABLE IF NOT EXISTS loan_applications (
+        $dsnWithoutDb = "mysql:host=$host;charset=$charset";
+        $pdoInit = new PDO($dsnWithoutDb, $user, $pass, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+        ]);
+
+        // 1. Check & Create Database
+        $pdoInit->exec("CREATE DATABASE IF NOT EXISTS `$db` CHARACTER SET $charset COLLATE {$charset}_general_ci");
+        
+        // 2. Database select karein
+        $pdoInit->exec("USE `$db`");
+
+        // 3. Check & Create Table
+        $pdoInit->exec("CREATE TABLE IF NOT EXISTS loan_applications (
             id          INT AUTO_INCREMENT PRIMARY KEY,
             name        VARCHAR(100)  NOT NULL,
             number      VARCHAR(15)   NOT NULL,
@@ -28,7 +34,26 @@ function getDB($host, $db, $user, $pass, $charset)
             salary      DECIMAL(12,2),
             created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )");
-        return $pdo;
+
+        return true;
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
+/**
+ * 2. Regular DB Connection Function
+ */
+function getDB($host, $db, $user, $pass, $charset)
+{
+    $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
+    $options = [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES   => false,
+    ];
+    try {
+        return new PDO($dsn, $user, $pass, $options);
     } catch (PDOException $e) {
         return null;
     }
@@ -82,7 +107,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // --- Save to DB if no errors ---
     if (empty($errors)) {
+        
+        // PEHLE INITIALIZE KAREIN:
+
+        initDatabase($host, $db, $user, $pass, $charset);
+
         $pdo = getDB($host, $db, $user, $pass, $charset);
+        
         if ($pdo) {
             $stmt = $pdo->prepare("INSERT INTO loan_applications
                 (name, number, email, pan_card, city, salary)

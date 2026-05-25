@@ -1,6 +1,7 @@
 ﻿<?php
-require "config.php";
-require "actions/apply-form.php";
+require __DIR__ . "/config.php";
+require __DIR__ . "/actions/apply-form.php";
+
 ?>
 <!DOCTYPE html>
 <html lang="zxx">
