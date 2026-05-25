@@ -1,6 +1,6 @@
 ﻿<?php
 require "config.php";
-// require "actions/apply-form.php";
+require "actions/apply-form.php";
 ?>
 <!DOCTYPE html>
 <html lang="zxx">
