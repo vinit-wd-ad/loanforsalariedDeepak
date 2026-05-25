@@ -70,7 +70,7 @@ $pdo = getDB($host, $db, $user, $pass, $charset);
 // First time only uncomment below line,
 // ============================================================
 
-// createLoanTable($pdo);
+createLoanTable($pdo);
 
 // ============================================================
 // Form Handling
